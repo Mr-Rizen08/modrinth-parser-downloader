@@ -6,7 +6,7 @@ It’s a personal project I created to make working with Modrinth easier and fas
 
 __How to use 🧐__  
 ~~~bash
-Run pip install -r requirements.txt
+pip install -r requirements.txt
 ~~~
 to install all the libraries you need.
 
