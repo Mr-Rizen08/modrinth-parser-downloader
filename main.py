@@ -1,14 +1,19 @@
+from mods_platform import find_platform
 import time
-import json
-
-import pandas as pd
-from selenium import webdriver
 from selenium.common import NoSuchElementException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
+from core import BROWSERS
+from service.saver import SaverBase, SaveToFile
 
 URL = "https://modrinth.com/"
 URL2 = "https://modrinth.com"
+
+driver = BROWSERS()
+driver.get(URL)
+start = driver.find_element(By.XPATH, "//a[@data-v-48d6e828]")
+start.click()
+
 while True:
     functions = input("What function do you need? [parser/downloader or stop]")
     if functions.lower().strip() == "downloader":
@@ -19,6 +24,7 @@ while True:
                     plugins: bungeecord, velocity, bukkit, folia, paper, purpur, waterfall; 
                     datapacks: datapack; resourcepacks: resourcepack; ]""")
     elif functions.lower().strip() == "parser":
+        choice = input(f"Формат ({'/'.join(SaverBase.available())}): ").strip().lower()
         section = input("What section do you need ? [mods, modpacks, plugins, datapacks or resourcepacks]")
         page = input('How many pages do you need? [1,max or your value]')
         element_number = input("How many elements do you need [3-96], but you can use 100(it can sometimes give error)")
@@ -26,53 +32,6 @@ while True:
         file_name = input("File name:")
     else:
          break
-
-
-
-
-    driver = webdriver.Chrome()
-    driver.get(URL)
-    start = driver.find_element(By.XPATH, "//a[@data-v-48d6e828]")
-    start.click()
-
-    def get_platform(plat):
-        try:
-            filters= driver.find_element(By.XPATH, f"//button[@data-v-96db6ef4 and contains(text(), ' {plat}')]").click()
-        except NoSuchElementException:
-            filters = driver.find_element(By.XPATH, "//button[@data-v-96db6ef4]").click()
-
-
-    def find_platform(plat):
-        if plat.lower().strip() == "fabric":
-            get_platform(plat.title().strip())
-        elif plat.lower().strip() == "datapack":
-            get_platform(plat[:4].title().strip() + " " + plat[4:].title().strip())
-        elif plat.lower().strip() == "neoforge":
-            get_platform(plat[:3].title().strip() + plat[3:].title().strip())
-        elif plat.lower().strip() == "forge":
-            get_platform(plat.title().strip())
-        elif plat.lower().strip() == "quilt":
-            get_platform(plat.title().strip())
-        elif plat.lower().strip() == "velocity":
-            get_platform(plat.title().strip())
-        elif plat.lower().strip() == "bukkit":
-            get_platform(plat.title().strip())
-        elif plat.lower().strip() == "folia":
-            get_platform(plat.title().strip())
-        elif plat.lower().strip() == "paper":
-            get_platform(plat.title().strip())
-        elif plat.lower().strip() == "purpur":
-            get_platform(plat.title().strip())
-        elif plat.lower().strip() == "waterfall":
-            get_platform(plat.title().strip())
-        elif plat.lower().strip() == "bungeecord":
-            get_platform(plat[:6].title().strip() + plat[6:].title().strip())
-        elif plat.lower().strip() == "iris":
-            get_platform(plat.title())
-        elif plat.lower().strip() == "optifine":
-            get_platform(plat[:4].title().strip() + plat[4:])
-        elif plat.lower().strip() == "resourcepack":
-            get_platform(plat[:8].title().strip() + " " + plat[8:].title().strip())
 
 
     def download_mod(name, ver, plat):
@@ -90,7 +49,7 @@ while True:
         search_ver = driver.find_element(By.ID, "search-input")
         search_ver.send_keys(ver+Keys.ENTER)
         time.sleep(1)
-        find_platform(plat)
+        find_platform(plat, driver)
         time.sleep(1)
         download_link= driver.find_element(By.CSS_SELECTOR, "a.absolute").get_attribute("href")
         driver.get(download_link)
@@ -143,16 +102,6 @@ while True:
             })
         return data
 
-    def save_to_exel(data:list, name):
-        df = pd.DataFrame(data)
-        df.to_excel(f"{name}.xlsx", index=False)
-        print("Done")
-
-    def save_to_json(data:list, name):
-        with open(f"{name}.json", "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=4)
-        print("Done")
-
     def get_pages():
         time.sleep(2)
         data = []
@@ -201,12 +150,6 @@ while True:
             driver.get(sections + f"?m={number}")
         else:
             raise TypeError("You did something wrong")
-
-    def choose_format(data):
-        if formate.lower().strip() == "json":
-            save_to_json(data, file_name)
-        elif formate.lower().strip() == "excel":
-            save_to_exel(data, file_name)
 
 
     def main():
@@ -277,6 +220,9 @@ while True:
             else:
                 raise TypeError("You did something wrong")
 
-            choose_format(data)
+            saver = SaverBase.create1(choice)
+
+            SaveToFile(saver, data).save("mods")
+
     if __name__ == "__main__":
         main()

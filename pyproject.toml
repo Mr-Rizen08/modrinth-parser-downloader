@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "modrinth-parser-downloader"
+version = "0.1.0"
+description = ""
+authors = ["Mr-Rizen08 <karomatramis@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+selenium = "^4.52.0"
+pandas = "^3.1.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
